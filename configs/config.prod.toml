@@ -1,9 +1,9 @@
 [app]
-title = "HistorAI [DEV]"
+title = "HistorAI"
 icon = "🧙‍♂"
 layout = "wide"
 debug = true
-environment = "local"
+environment = "prod"
 
 [database]
 db_path = "app/database/historai_local.db"
