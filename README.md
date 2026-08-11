@@ -1,108 +1,63 @@
-# 🧙‍♂ HistorAI - Tarihi Karakter Chatbotu
+# 🧙‍♂️ HistorAI - Tarihi Karakter Chatbotu
 
-Projeyi yerel olarak çalıştırmak için kurulum adımlarını inceleyebilirsiniz.
+Tarihi figürlerle etkileşimli sohbet deneyimi sunan bir yapay zeka platformu. Kullanıcılar Fatih Sultan Mehmet, Leonardo da Vinci, Mevlana gibi tarihi kişiliklerle sohbet edebilir, kritik tarihi olaylara yolculuk yapabilir ve kişilik testiyle kendilerine en uygun karakteri keşfedebilir.
 
-## 🚀 Kurulum
-1. `pip install -r requirements.txt`
-2. `.env` dosyası oluştur ve `GEMINI_API_KEY` ekle
-3. `streamlit run main.py`
+**🌐 Canlı Demo:** https://btkhackathonproject-hefzbortmg4mxazvlpqgpx.streamlit.app/
 
-## 🔑 API Key Alma (yerel olarak farklı key ile çalıştırmak için) 
-1. Google AI Studio'ya git: https://makersuite.google.com/app/apikey
-2. API key oluştur
-3. `.env` dosyasına ekle (değişken adlandırması örnek .env dosyasında) 
+---
 
-## 🌐 Canlı Demo
-https://btkhackathonproject-hefzbortmg4mxazvlpqgpx.streamlit.app/ 
+## 🚀 Kurulum ve Çalıştırma
+
+### 1. Bağımlılıkları yükleyin
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Ortam değişkenlerini ayarlayın
+Proje dizininde bir `.env` dosyası oluşturun ve `GEMINI_API_KEY` değişkenini ekleyin (değişken adlandırması için örnek `.env` dosyasına bakınız).
+
+### 3. Uygulamayı başlatın
+```bash
+streamlit run main.py
+```
+
+### 🔑 API Key Alma
+Yerel ortamda kendi API key'inizle çalıştırmak isterseniz:
+
+1. [Google AI Studio](https://makersuite.google.com/app/apikey) sayfasına gidin
+2. Yeni bir API key oluşturun
+3. Oluşturduğunuz key'i `.env` dosyasına ekleyin
+
+---
+
+## 🎯 Proje Tanıtımı
+
+HistorAI, yapay zeka teknolojisini tarih eğitimiyle buluşturan interaktif bir öğrenme platformudur. Kullanıcılar tarihi kişiliklerle doğrudan sohbet ederek geçmişi deneyimler, tarihsel bilgiyi ezberlemek yerine yaşayarak öğrenir.
+
+### Ana Özellikler
+
+| Özellik | Açıklama |
+|---|---|
+| 💬 **Tarihi Karakterlerle Sohbet** | Dönem diline uygun, tarihsel olarak doğrulanmış yanıtlar ve karaktere özel konuşma tarzları |
+| ⏰ **Zamanda Yolculuk** | İstanbul'un Fethi (1453), Malazgirt Savaşı (1071) gibi olayların içine sinematik atmosferle yolculuk |
+| 🧬 **Kişilik Eşleştirme** | Big Five kişilik modeline dayalı 5 soruluk test ile kullanıcıya uygun karakter önerisi |
+| 📚 **Sohbet Yönetimi** | Otomatik kayıt, kategorizasyon, sabitleme ve akıllı başlık oluşturma |
+| 📖 **Teknik Özetleme** | Sohbetlerden akademik standartta, objektif tarihsel bilgi çıkarımı |
+| 📥 **Çoklu Format İndirme** | PDF, Word ve JSON formatlarında yazdırılabilir dışa aktarım |
+
+### Kullanılan Teknolojiler
+
+- **Frontend & Backend:** Streamlit, Python, SQLite
+- **Yapay Zeka:** Google Gemini 2.5 Flash, özel prompt engineering ile tarihsel doğruluk ve karakter tutarlılığı
+- **Dokümantasyon:** ReportLab (PDF), python-docx (Word), JSON
+
+### Eğitsel Yaklaşım
+
+Proje, empati temelli öğrenme ve gamifikasyon unsurlarını (zamanda yolculuk, kişilik testleri) bir araya getirerek tarih, psikoloji ve teknolojiyi kesiştiren bütünsel bir öğrenme deneyimi sunmayı hedefler. İçerikler yalnızca güvenilir kaynaklara dayalı, tarihsel olarak doğrulanmış bilgilerden oluşturulur.
+
+---
 
 ## 📧 İletişim
-- baycorabaykan@gmail.com 
-- https://www.linkedin.com/in/baykan-nuri-bay%C3%A7ora-17a197285/
 
-- 092003alper@gmail.com
-- https://www.linkedin.com/in/alperdurmus1/
-
---------------------------------------------------------------------------------
-PROJE TANITIMI 
----------------------------------------------------------------------------------
-## 🧙‍♂ HistorAI - Tarihi Karakter Chatbotu
-
-🎯 Proje Özeti
-
-HistorAI, yapay zeka teknolojisini tarihi eğitimle buluşturan yenilikçi bir platformdur. Kullanıcılar, tarihte yaşamış gerçek kişiliklerle doğrudan sohbet ederek geçmişi deneyimleyebilir ve tarihi bilgilerini interaktif şekilde öğrenebilirler.
-
-🚀 Ana Özellikler
-
-### 💬 Gerçek Tarihi Karakterlerle Sohbet
-
-Fatih Sultan Mehmet, Leonardo da Vinci, Mevlana gibi tarihi figürlerle gerçekçi konuşmalar
-Dönem diline uygun, tarihsel olarak doğrulanmış yanıtlar
-Kişiliğe özel konuşma tarzları ve perspektifler
-
-### ⏰ Zamanda Yolculuk Deneyimi
-
-İstanbul'un Fethi (1453), Malazgirt Savaşı (1071) gibi kritik tarihi olayların ortasına yolculuk
-Sinematik atmosfer betimlemeleri ile yaşayan tarih deneyimi
-Olay anında karakterlerle roleplay yapma fırsatı
-
-### 🧬 Akıllı Kişilik Eşleştirme
-
-5 soruluk psikolojik test ile karakterle uyumluluk analizi
-Big Five kişilik modeli tabanlı bilimsel eşleştirme algoritması
-Kullanıcının sohbet tarzına göre otomatik karakter önerileri
-
-### 📚 Gelişmiş Sohbet Yönetimi
-Tüm sohbetlerin otomatik kaydı ve kategorizasyonu
-Önemli sohbetleri sabitleyebilme özelliği
-Akıllı başlık oluşturma ve filtreleme sistemi
-
-### 📖 Teknik Tarihsel Özetleme
-Yapay zeka destekli sohbet özetleri
-Akademik standartlarda objektif tarihsel bilgi çıkarımı
-Öğrenilen bilgilerin sistematik organize edilmesi
-
-### 📥 Çoklu Format İndirme
-
-PDF, Word ve JSON formatlarında sohbet dışa aktarımı
-Modern tasarımlı, yazdırılabilir dokümantasyon
-Akademik çalışmalar için uygun formatlama
-
-
-## 🛠 Kullanılan Teknolojiler
-### Frontend & Backend
-
-Streamlit: Modern web arayüzü ve gerçek zamanlı etkileşim
-Python: Ana programlama dili ve veri işleme
-SQLite: Yerel veritabanı yönetimi
-
-### Yapay Zeka
-
-Google Gemini 2.5 Flash: Gelişmiş doğal dil işleme
-Özel Prompt Engineering: Tarihsel doğruluk ve karakter tutarlılığı
-
-### Dokümantasyon
-
-ReportLab: PDF oluşturma ve tasarım
-python-docx: Word belgeleri üretimi
-JSON: Veri taşınabilirliği
-
-### 🎓 Eğitsel Değer
-Tarih Öğretimi Devriminin Lideri
-
-Interaktif Öğrenme: Geleneksel ezber sistemden uzaklaşarak deneyimsel öğrenme
-Kişiselleştirilmiş Eğitim: Her kullanıcının öğrenme tarzına uygun yaklaşım
-Çoklu Zeka Teorisi: Görsel, işitsel ve kinestetik öğrenme stillerini destekleme
-
-### Akademik Standartlar
-
-Yalnızca tarihsel olarak doğrulanmış bilgiler
-Güvenilir kaynaklara dayalı karakter profilleri
-Bilimsel yöntemlerle geliştirilmiş içerik kontrolü
-
-### 🌟 Yenilikçi Yaklaşımlar
-1. Empati Temelli Tarih Öğrenimi
-Tarihi karakterlerle kurulan duygusal bağ, öğrenilen bilgilerin kalıcılığını artırır ve tarihi olayları daha derin anlamayı sağlar.
-2. Gamifikasyon Unsurları
-Zamanda yolculuk ve kişilik testleri gibi eğlenceli özellikler, kullanıcı motivasyonunu yüksek tutar.
-3. Çapraz Disiplin Entegrasyonu
-Tarih, psikoloji, teknoloji ve eğitim bilimlerinin bir araya getirilmesi ile bütünsel bir öğrenme deneyimi.
+- Baykan Nuri Bayçora — baycorabaykan@gmail.com — [LinkedIn](https://www.linkedin.com/in/baykan-nuri-bay%C3%A7ora-17a197285/)
+- Alper Durmuş — 092003alper@gmail.com — [LinkedIn](https://www.linkedin.com/in/alperdurmus1/)
