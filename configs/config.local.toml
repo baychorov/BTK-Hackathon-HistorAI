@@ -11,18 +11,18 @@ db_path = "app/database/historai_local.db"
 [ai]
 model_name = "gemini-3.6-flash"
 prompts_path = "app/prompts/prompts.json"
-temperature = 0.7  # Yaratıcılık seviyesi (Local'de test için biraz daha esnek tutulabilir)
+temperature = 0.7  # creativity
 
 [export]
 fallback_font = "Helvetica"
 document_title = "HistorAI Sohbeti"
 
-# PDF Renkleri (Hex)
+# PDF Colors (Hex)
 pdf_title_color = "#1a365d"
 pdf_subtitle_color = "#2d3748"
 pdf_question_color = "#2b6cb0"
 pdf_answer_color = "#1a202c"
 
-# Word Renkleri (RGB listesi olarak: [R, G, B])
+# Word Colors (RGB list : [R, G, B])
 word_question_color = [43, 108, 176]
 word_answer_color = [212, 84, 58]

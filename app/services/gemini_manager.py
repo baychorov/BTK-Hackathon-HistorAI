@@ -10,32 +10,29 @@ import google.generativeai as genai
 
 class GeminiManager:
     def __init__(self, model_name: str = "gemini-2.5-flash", prompts_path: str = "prompts/prompts.json"):
-        """Gemini API yapılandırmasını ve promptları başlatır."""
+        """Initializes Gemini API configuration and loads prompt templates."""
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
-            raise ValueError("GEMINI_API_KEY bulunamadı! Lütfen .env dosyanızı kontrol edin.")
+            raise ValueError("GEMINI_API_KEY not found! Please check your environment variables.")
             
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
         
-        # Promptları yükle
         self._load_prompts(prompts_path)
 
     def _load_prompts(self, prompts_path: str):
-        """JSON dosyasından prompt kalıplarını okur."""
+        """Loads prompt templates from a JSON file."""
         try:
             with open(prompts_path, "r", encoding="utf-8") as f:
                 self.prompts = json.load(f)
         except FileNotFoundError:
-            raise FileNotFoundError(f"Prompt dosyası bulunamadı: {prompts_path}")
+            raise FileNotFoundError(f"Prompt file not found: {prompts_path}")
         except json.JSONDecodeError:
-            raise ValueError(f"Prompt dosyası geçerli bir JSON değil: {prompts_path}")
+            raise ValueError(f"Prompt file is not valid JSON: {prompts_path}")
 
     def generate_chat_response(self, prompt: str, character: str, is_time_travel: bool = False) -> str:
-        """Karaktere veya zamanda yolculuk durumuna göre uygun prompt'u JSON'dan seçip formatlar ve API'den yanıt alır."""
-        
+        """Formats the prompt based on roleplay type and requests a response from Gemini API."""
         if is_time_travel:
-            # JSON'dan kalıbı alıp değişkenleri dolduruyoruz
             ai_prompt = self.prompts["time_travel_roleplay"].format(
                 character=character, 
                 prompt=prompt
@@ -50,21 +47,20 @@ class GeminiManager:
             response = self.model.generate_content(ai_prompt)
             return response.text
         except Exception as e:
-            return f"Bir hata oluştu: {str(e)}"
+            return f"An error occurred: {str(e)}"
 
     def create_conversation_summary(self, messages: list, character_name: str) -> str:
-        """Sohbet geçmişini alır ve Gemini API kullanarak teknik bir özet çıkarır."""
+        """Generates a summary of the conversation history using Gemini API."""
         if len(messages) < 2:
-            return "Özet oluşturmak için yeterli mesaj bulunmuyor."
+            return "Insufficient messages to generate a summary."
 
         conversation_text = ""
         for i in range(0, len(messages), 2):
             if i + 1 < len(messages):
                 question = messages[i]["content"]
                 answer = messages[i + 1]["content"]
-                conversation_text += f"Soru: {question}\nCevap: {answer}\n\n"
+                conversation_text += f"Question: {question}\nAnswer: {answer}\n\n"
 
-        # JSON'dan özet kalıbını alıp dolduruyoruz
         summary_prompt = self.prompts["summary_generation"].format(
             character_name=character_name,
             conversation_text=conversation_text
@@ -74,10 +70,10 @@ class GeminiManager:
             response = self.model.generate_content(summary_prompt)
             return response.text
         except Exception as e:
-            return f"Özet oluştururken hata: {str(e)}"
+            return f"Failed to generate summary: {str(e)}"
 
     def analyze_conversation_style(self, messages: list) -> dict:
-        """Kullanıcının konuşma tarzını analiz ederek ona bir karakter önerisi yapar."""
+        """Analyzes user message keywords and suggests a matching historical character."""
         if len(messages) < 4:
             return None
 
@@ -89,36 +85,36 @@ class GeminiManager:
         philosophy_keywords = ["neden", "nasıl", "anlam", "düşünce", "felsefe", "hakikat", "bilgi", "akıl"]
         if any(keyword in all_text for keyword in philosophy_keywords):
             suggestions.extend([
-                {"name": "Sokrates", "reason": "Felsefi sorgulamalarınız Sokrates'in tarzına çok benziyor"},
-                {"name": "İbn Rüşd", "reason": "Akıl ve mantık odaklı yaklaşımınız İbn Rüşd ile uyumlu"},
-                {"name": "Farabi", "reason": "Bilgi arayışınız Farabi'nin yöntemleriyle örtüşüyor"}
+                {"name": "Sokrates", "reason": "Your inquiry style mirrors Socrates' Socratic method."},
+                {"name": "İbn Rüşd", "reason": "Your rational and logic-driven approach aligns with Averroes."},
+                {"name": "Farabi", "reason": "Your search for knowledge echoes Al-Farabi's methodology."}
             ])
 
         war_keywords = ["savaş", "strateji", "ordu", "zafer", "mücadele", "liderlik"]
         if any(keyword in all_text for keyword in war_keywords):
             suggestions.extend([
-                {"name": "Selahaddin Eyyubi", "reason": "Strateji ve liderlik ilginiz Selahaddin'e uygun"},
-                {"name": "Napoléon Bonaparte", "reason": "Askeri strateji merakınız Napoléon'la eşleşiyor"}
+                {"name": "Selahaddin Eyyubi", "reason": "Your interest in strategy and leadership matches Saladin."},
+                {"name": "Napoléon Bonaparte", "reason": "Your focus on military strategy fits Napoleon."}
             ])
 
         art_keywords = ["sanat", "güzel", "estetik", "yaratıcı", "ilham", "şiir"]
         if any(keyword in all_text for keyword in art_keywords):
             suggestions.extend([
-                {"name": "Michelangelo", "reason": "Sanat ve yaratıcılık ilginiz Michelangelo ile uyumlu"},
-                {"name": "Fuzuli", "reason": "Estetik anlayışınız Fuzuli'nin şiirine yakın"}
+                {"name": "Michelangelo", "reason": "Your passion for art and creativity aligns with Michelangelo."},
+                {"name": "Fuzuli", "reason": "Your aesthetic perspective resembles Fuzuli's poetry."}
             ])
 
         science_keywords = ["bilim", "keşif", "araştırma", "deney", "gözlem", "doğa"]
         if any(keyword in all_text for keyword in science_keywords):
             suggestions.extend([
-                {"name": "Galileo Galilei", "reason": "Bilimsel merakınız Galileo'nun ruhunu yansıtıyor"},
-                {"name": "İbn Sina", "reason": "Araştırma tutkunu İbn Sina'ya çok benziyor"}
+                {"name": "Galileo Galilei", "reason": "Your scientific curiosity reflects Galileo's spirit."},
+                {"name": "İbn Sina", "reason": "Your research drive aligns well with Avicenna."}
             ])
 
         return random.choice(suggestions) if suggestions else None
 
     def calculate_personality_match(self, user_scores: dict, characters_data: list) -> list:
-        """Kullanıcının kişilik puanlarını karakterlerle eşleştirip en yüksek yüzdelileri döndürür."""
+        """Calculates trait similarities between user scores and historical characters, returning sorted matches."""
         best_matches = []
 
         for character in characters_data:

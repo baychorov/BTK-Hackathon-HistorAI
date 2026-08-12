@@ -8,7 +8,7 @@ import os
 import platform
 from io import BytesIO
 
-# ReportLab - Türkçe karakterler için en iyi seçenek
+# ReportLab - PDF generation
 try:
     from reportlab.lib.pagesizes import letter, A4
     from reportlab.pdfgen import canvas
@@ -21,7 +21,7 @@ try:
 except ImportError:
     REPORTLAB_AVAILABLE = False
 
-# Python-docx for Word files
+# Python-docx for Word document generation
 try:
     from docx import Document
     from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -33,15 +33,12 @@ except ImportError:
 
 class ExportManager:
     def __init__(self, db_service, export_config):
-        """
-        Dışa aktarma servisini başlatır. 
-        Veritabanı servisini ve export ayarlarını (TOML'dan) enjekte eder.
-        """
+        """Initializes the export manager with injected database service and export configuration."""
         self.db = db_service
         self.config = export_config
 
     def _register_modern_fonts(self):
-        """Modern font kaydı (PDF oluşturulurken çağrılır)"""
+        """Registers system TTF fonts for ReportLab PDF generation."""
         try:
             if platform.system() == "Windows":
                 font_paths = [
@@ -66,7 +63,7 @@ class ExportManager:
                     "/Library/Fonts/Arial Bold.ttf"
                 ]
             else:
-                # Güncel Ubuntu ve Linux dağıtımları için standart font dizinleri
+                # Standard Linux font paths
                 font_paths = [
                     "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
                     "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
@@ -76,19 +73,20 @@ class ExportManager:
                     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
                 ]
 
-            for i, (regular, bold) in enumerate(zip(font_paths, bold_paths)):
+            for regular, bold in zip(font_paths, bold_paths):
                 try:
                     if os.path.exists(regular) and os.path.exists(bold):
                         pdfmetrics.registerFont(TTFont('ModernFont', regular))
                         pdfmetrics.registerFont(TTFont('ModernFont-Bold', bold))
                         return 'ModernFont'
-                except:
+                except Exception:
                     continue
             return self.config.fallback_font
-        except:
+        except Exception:
             return self.config.fallback_font
 
     def create_json(self, conversation_id: int, session_id: str, summary: str = None) -> BytesIO:
+        """Exports conversation history as a JSON stream."""
         conv_info = self.db.get_conversation_info(conversation_id, session_id)
         if not conv_info:
             return None
@@ -107,8 +105,9 @@ class ExportManager:
         return BytesIO(json.dumps(data, indent=4, ensure_ascii=False).encode("utf-8"))
 
     def create_pdf(self, conversation_id: int, session_id: str, summary: str = None) -> BytesIO:
+        """Generates a formatted PDF document of the conversation."""
         if not REPORTLAB_AVAILABLE:
-            raise ImportError("PDF oluşturmak için ReportLab gerekli: pip install reportlab")
+            raise ImportError("ReportLab is required for PDF generation: pip install reportlab")
 
         conv_info = self.db.get_conversation_info(conversation_id, session_id)
         if not conv_info:
@@ -123,8 +122,8 @@ class ExportManager:
                                 topMargin=50, bottomMargin=50)
 
         styles = getSampleStyleSheet()
-        
-        # Konfigürasyondan renkleri çekiyoruz
+        font_bold = f'{modern_font}-Bold' if modern_font != self.config.fallback_font else f'{self.config.fallback_font}-Bold'
+
         title_style = ParagraphStyle(
             'ModernTitle',
             parent=styles['Heading1'],
@@ -132,7 +131,7 @@ class ExportManager:
             alignment=1,
             spaceAfter=30,
             textColor=HexColor(self.config.pdf_title_color),
-            fontName=f'{modern_font}-Bold' if modern_font != self.config.fallback_font else f'{self.config.fallback_font}-Bold'
+            fontName=font_bold
         )
         subtitle_style = ParagraphStyle(
             'ModernSubtitle',
@@ -141,7 +140,7 @@ class ExportManager:
             alignment=1,
             spaceAfter=20,
             textColor=HexColor(self.config.pdf_subtitle_color),
-            fontName=f'{modern_font}-Bold' if modern_font != self.config.fallback_font else f'{self.config.fallback_font}-Bold'
+            fontName=font_bold
         )
         question_style = ParagraphStyle(
             'ModernQuestion',
@@ -150,7 +149,7 @@ class ExportManager:
             spaceAfter=8,
             spaceBefore=15,
             textColor=HexColor(self.config.pdf_question_color),
-            fontName=f'{modern_font}-Bold' if modern_font != self.config.fallback_font else f'{self.config.fallback_font}-Bold'
+            fontName=font_bold
         )
         answer_style = ParagraphStyle(
             'ModernAnswer',
@@ -164,12 +163,12 @@ class ExportManager:
 
         content = []
         content.append(Paragraph(f"🧙‍♂ {self.config.document_title}", title_style))
-        content.append(Paragraph(f"Karakter: {character}", subtitle_style))
+        content.append(Paragraph(f"Character: {character}", subtitle_style))
         content.append(Spacer(1, 30))
 
         if summary:
             summary_clean = str(summary).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            content.append(Paragraph("<b>📋 Sohbet Özeti:</b>", subtitle_style))
+            content.append(Paragraph("<b>📋 Conversation Summary:</b>", subtitle_style))
             content.append(Paragraph(summary_clean, answer_style))
             content.append(Spacer(1, 20))
 
@@ -177,7 +176,7 @@ class ExportManager:
             def clean_text(text):
                 return str(text).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
-            content.append(Paragraph(f"<b>❓ Soru {i}:</b> {clean_text(question)}", question_style))
+            content.append(Paragraph(f"<b>❓ Question {i}:</b> {clean_text(question)}", question_style))
             content.append(Paragraph(f"<b>💬 {character}:</b> {clean_text(answer)}", answer_style))
             
             if i < len(messages):
@@ -188,11 +187,12 @@ class ExportManager:
             buffer.seek(0)
             return buffer
         except Exception as e:
-            raise Exception(f"PDF oluştururken hata: {str(e)}")
+            raise Exception(f"Failed to generate PDF: {str(e)}")
 
     def create_word(self, conversation_id: int, session_id: str, summary: str = None) -> BytesIO:
+        """Generates a formatted Microsoft Word (.docx) document of the conversation."""
         if not DOCX_AVAILABLE:
-            raise ImportError("Word dosyası oluşturmak için python-docx gerekli: pip install python-docx")
+            raise ImportError("python-docx is required for Word generation: pip install python-docx")
 
         conv_info = self.db.get_conversation_info(conversation_id, session_id)
         if not conv_info:
@@ -203,25 +203,22 @@ class ExportManager:
 
         doc = Document()
 
-        # Başlık - TOML'dan
         title_para = doc.add_heading(f'🧙‍♂ {self.config.document_title}', 0)
         title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-        # Karakter bilgisi
-        char_para = doc.add_heading(f'Karakter: {character}', level=1)
+        char_para = doc.add_heading(f'Character: {character}', level=1)
         char_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
         doc.add_paragraph('')
 
         if summary:
-            doc.add_heading('📋 Sohbet Özeti', level=2)
+            doc.add_heading('📋 Conversation Summary', level=2)
             doc.add_paragraph(summary)
             doc.add_paragraph('')
 
         for i, (question, answer) in enumerate(messages, 1):
             q_para = doc.add_paragraph()
-            q_run = q_para.add_run(f'❓ Soru {i}: ')
+            q_run = q_para.add_run(f'❓ Question {i}: ')
             q_run.bold = True
-            # RGB renkleri TOML üzerinden unpack (*list) ederek ekliyoruz
             q_run.font.color.rgb = RGBColor(*self.config.word_question_color)
             q_para.add_run(question)
 

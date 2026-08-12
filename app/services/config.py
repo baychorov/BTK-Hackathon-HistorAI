@@ -28,7 +28,7 @@ class AIConfig:
 @dataclass
 class ExportConfig:
     fallback_font: str = "Helvetica"
-    document_title: str = "HistorAI Sohbeti"
+    document_title: str = "HistorAI Chat"
     pdf_title_color: str = "#1a365d"
     pdf_subtitle_color: str = "#2d3748"
     pdf_question_color: str = "#2b6cb0"
@@ -37,30 +37,27 @@ class ExportConfig:
     word_answer_color: list = field(default_factory=lambda: [212, 84, 58])
 
 class ConfigManager:
-    """Singleton tasarım deseni ile konfigürasyonları sadece bir kez yükler."""
+    """Singleton implementation to ensure configurations are loaded only once."""
     _instance = None
 
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(ConfigManager, cls).__new__(cls)
-            cls._instance._load_config() # Sınıf çağrıldığında TOML dosyasını okuyan tetikleyici
+            cls._instance._load_config()
         return cls._instance
 
     def _load_config(self):
-        # .env dosyasında APP_ENV tanımlı değilse varsayılan olarak 'local' kabul et
         env = os.getenv("APP_ENV", "local")
-        # main.py kök dizinde çalıştığı için yollar kök dizine göre verilir
         config_path = f"configs/config.{env}.toml"
         
         try:
             with open(config_path, "rb") as f:
                 data = tomllib.load(f)
                 
-            # İşte ConfigManager'a niteliklerin (attribute) eklendiği yer burası:
             self.app = AppConfig(**data.get("app", {}))
             self.database = DatabaseConfig(**data.get("database", {}))
             self.ai = AIConfig(**data.get("ai", {}))
             self.export = ExportConfig(**data.get("export", {}))
             
         except FileNotFoundError:
-            raise FileNotFoundError(f"Konfigürasyon dosyası bulunamadı: {config_path}")
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")

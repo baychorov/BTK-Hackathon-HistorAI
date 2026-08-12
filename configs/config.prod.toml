@@ -9,9 +9,9 @@ environment = "prod"
 db_path = "app/database/historai_local.db"
 
 [ai]
-model_name = "gemini-2.5-flash"
+model_name = "gemini-3.6-flash"
 prompts_path = "app/prompts/prompts.json"
-temperature = 0.7  # Yaratıcılık seviyesi (Local'de test için biraz daha esnek tutulabilir)
+temperature = 0.7  # creativity
 
 [export]
 fallback_font = "Helvetica"

@@ -15,21 +15,20 @@ class DatabaseService:
         self.initialize_database()
 
     def _ensure_db_directory(self):
-        """Veritabanı klasörünün var olduğundan emin olur."""
+        """Ensures the directory for the database file exists."""
         db_dir = os.path.dirname(self.db_path)
         if db_dir and not os.path.exists(db_dir):
             os.makedirs(db_dir, exist_ok=True)
 
     def _get_connection(self):
-        """SQLite bağlantısı döndürür."""
+        """Returns a new SQLite connection."""
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
     def initialize_database(self):
-        """Uygulama ilk başladığında tabloları ve güncellemeleri kurar."""
+        """Initializes database schema, performs migrations, and updates missing columns."""
         with self._get_connection() as conn:
             c = conn.cursor()
             
-            # Yeni tablo yapısı: conversations
             c.execute('''CREATE TABLE IF NOT EXISTS conversations 
                          (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                           character TEXT, 
@@ -39,7 +38,6 @@ class DatabaseService:
                           conversation_type TEXT DEFAULT 'normal',
                           session_id TEXT)''')
 
-            # Yeni tablo yapısı: messages
             c.execute('''CREATE TABLE IF NOT EXISTS messages 
                          (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                           conversation_id INTEGER, 
@@ -49,7 +47,7 @@ class DatabaseService:
                           session_id TEXT,
                           FOREIGN KEY (conversation_id) REFERENCES conversations (id))''')
             
-            # Eski tablodan (chats) geçiş kontrolü (Geriye dönük uyumluluk)
+            # Migrate legacy data from old table structure if present
             c.execute("PRAGMA table_info(chats)")
             old_table_exists = c.fetchall()
             if old_table_exists:
@@ -63,22 +61,22 @@ class DatabaseService:
                               (conv_id, ques, ans, 'legacy'))
                 c.execute("DROP TABLE chats")
 
-            # Eğer tablolar zaten varsa, eksik kolonları eklemeyi dene
+            # Add missing session_id columns if upgrading from earlier schema versions
             try:
                 c.execute("ALTER TABLE conversations ADD COLUMN session_id TEXT")
                 c.execute("UPDATE conversations SET session_id = 'legacy' WHERE session_id IS NULL")
             except sqlite3.OperationalError:
-                pass  # Kolon zaten mevcut
+                pass  # Column already exists
                 
             try:
                 c.execute("ALTER TABLE messages ADD COLUMN session_id TEXT")
                 c.execute("UPDATE messages SET session_id = 'legacy' WHERE session_id IS NULL")
             except sqlite3.OperationalError:
-                pass  # Kolon zaten mevcut
+                pass  # Column already exists
 
             conn.commit()
 
-    # --- CRUD OPERASYONLARI ---
+    # --- CRUD OPERATIONS ---
 
     def create_conversation(self, character: str, title: str, conv_type: str, session_id: str) -> int:
         with self._get_connection() as conn:
@@ -155,7 +153,7 @@ class DatabaseService:
             return c.fetchall()
             
     def get_conversation_info(self, conv_id: int, session_id: str):
-         with self._get_connection() as conn:
+        with self._get_connection() as conn:
             c = conn.cursor()
             c.execute("SELECT character, title FROM conversations WHERE id = ? AND session_id = ?",
                       (conv_id, session_id))

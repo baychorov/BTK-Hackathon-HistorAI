@@ -6,11 +6,11 @@ It includes the sidebar for chat history, header navigation, and export buttons.
 import streamlit as st
 
 def render_header():
-    """Üst bilgi ve anasayfa yönlendirme butonunu çizer."""
+    """Renders the header navigation bar and home button."""
     col_home, col_title = st.columns([1, 10])
     
     with col_home:
-        if st.button("🏠", help="Anasayfaya dön"):
+        if st.button("🏠", help="Return to home"):
             st.session_state.current_page = "home"
             st.session_state.current_conversation_id = None
             st.session_state.current_character = ""
@@ -19,24 +19,21 @@ def render_header():
             st.rerun()
 
     with col_title:
-        st.title("🧙‍♂ HistorAI - Tarihi Karakter Chatbotu")
+        st.title("🧙‍♂ HistorAI - Historical Character Chatbot")
 
 
 def render_sidebar(db_service, ai_service):
-    """Yan menüyü (Geçmiş sohbetler, pinleme, silme, özet) çizer."""
+    """Renders the sidebar containing chat history, actions, and summary generator."""
     with st.sidebar:
-        st.header("📚 Geçmiş Sohbetler")
+        st.header("📚 Chat History")
 
-        # Filtreleme
-        filter_char = st.text_input("Karaktere göre filtrele")
+        filter_char = st.text_input("Filter by character")
 
-        # Veritabanından sohbetleri getir
         conversations = db_service.get_conversations(
             session_id=st.session_state.user_session_id,
             filter_char=filter_char if filter_char else None
         )
 
-        # Sohbet Listesi
         for conv_id, char, title, is_pinned, conv_type in conversations:
             pin_icon = "📌 " if is_pinned else ""
             type_icon = "⏰ " if conv_type == "time_travel" else ""
@@ -44,13 +41,11 @@ def render_sidebar(db_service, ai_service):
 
             col1, col2, col3 = st.columns([4, 1, 1])
             with col1:
-                # Sohbete git butonu
                 if st.button(label, key=f"conv_{conv_id}"):
                     st.session_state.current_conversation_id = conv_id
                     st.session_state.current_character = char
                     st.session_state.current_page = "chat"
                     
-                    # Mevcut sohbetin mesajlarını yükle
                     messages = db_service.get_messages(conv_id, st.session_state.user_session_id)
                     st.session_state.messages = []
                     for q, a in messages:
@@ -59,15 +54,12 @@ def render_sidebar(db_service, ai_service):
                     st.rerun()
 
             with col2:
-                # Pin/Unpin butonu
                 pin_text = "📌" if not is_pinned else "📍"
                 if st.button(pin_text, key=f"pin_{conv_id}"):
-                    # Durumu tersine çevirerek güncelle
                     db_service.toggle_pin_status(conv_id, not is_pinned, st.session_state.user_session_id)
                     st.rerun()
 
             with col3:
-                # Sil butonu
                 if st.button("🗑", key=f"del_{conv_id}"):
                     db_service.delete_conversation(conv_id, st.session_state.user_session_id)
                     if st.session_state.current_conversation_id == conv_id:
@@ -78,8 +70,7 @@ def render_sidebar(db_service, ai_service):
 
         st.divider()
 
-        # Yeni sohbet başlat
-        if st.button("✨ Yeni Sohbet Başlat"):
+        if st.button("✨ Start New Chat"):
             st.session_state.current_conversation_id = None
             st.session_state.current_character = ""
             st.session_state.messages = []
@@ -89,8 +80,7 @@ def render_sidebar(db_service, ai_service):
                 del st.session_state.conversation_summary
             st.rerun()
 
-        # Tüm geçmişi sil
-        if st.button("🧨 Tüm Geçmişi Sil"):
+        if st.button("🧨 Clear All History"):
             db_service.delete_all_history(st.session_state.user_session_id)
             st.session_state.current_conversation_id = None
             st.session_state.messages = []
@@ -99,37 +89,34 @@ def render_sidebar(db_service, ai_service):
 
         st.divider()
 
-        # Sohbet Özeti Oluşturma (Sadece aktif bir sohbet varsa)
         if st.session_state.current_conversation_id and len(st.session_state.messages) >= 2:
-            st.subheader("📋 Sohbet Özeti")
+            st.subheader("📋 Conversation Summary")
 
-            if st.button("🔍 Teknik Özet Oluştur"):
-                with st.spinner("Özet oluşturuluyor..."):
+            if st.button("🔍 Generate Summary"):
+                with st.spinner("Generating summary..."):
                     summary = ai_service.create_conversation_summary(
                         st.session_state.messages,
                         st.session_state.current_character
                     )
                     st.session_state.conversation_summary = summary
 
-            # Eğer özet daha önceden oluşturulmuşsa göster
             if st.session_state.get("conversation_summary"):
-                with st.expander("📖 Tarihsel Özet", expanded=True):
+                with st.expander("📖 Historical Summary", expanded=True):
                     st.markdown(st.session_state.conversation_summary)
-                    if st.button("🗑️ Özeti Temizle", key="sidebar_clear_summary"):
+                    if st.button("🗑️ Clear Summary", key="sidebar_clear_summary"):
                         del st.session_state.conversation_summary
                         st.rerun()
             st.divider()
 
 
 def render_download_options(export_service):
-    """Mevcut sohbet için PDF, Word ve JSON indirme butonlarını çizer."""
+    """Renders PDF, Word, and JSON download buttons for the active conversation."""
     if st.session_state.current_conversation_id:
-        st.subheader("📥 İndirme Seçenekleri")
-        st.write("Mevcut sohbeti indir:")
+        st.subheader("📥 Export Options")
+        st.write("Download current conversation:")
 
         col1, col2, col3 = st.columns(3)
         
-        # Gerekli parametreleri session_state'ten topla
         conv_id = st.session_state.current_conversation_id
         session_id = st.session_state.user_session_id
         char_name = st.session_state.current_character

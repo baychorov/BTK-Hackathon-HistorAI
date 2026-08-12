@@ -10,30 +10,29 @@ import uuid
 import streamlit as st
 from dotenv import load_dotenv
 
-# App İçindeki Modüller
+# Application modules
 from app.services.config import ConfigManager
 from app.database.database import DatabaseService
 from app.services.gemini_manager import GeminiManager
 from app.services.export_manager import ExportManager
 from app.ui.view import render_app
 
-# 1. Ortam Değişkenlerini Yükle (Yeni izole konumdan)
+# Load environment variables
 load_dotenv(dotenv_path="credentials/api_key.env")
 
-# 2. Konfigürasyon Yöneticisini Başlat
+# Initialize configuration
 config = ConfigManager()
 
-# 3. Streamlit Sayfa Yapılandırması (TOML dosyasından çekiliyor)
-# NOT: st.set_page_config diğer tüm Streamlit komutlarından önce çağrılmalıdır.
+# Streamlit page configuration
 st.set_page_config(
     page_title=config.app.title,
     page_icon=config.app.icon,
     layout=config.app.layout
 )
 
-# 4. Persistent Session ID Üretici
+
 def get_persistent_session_id() -> str:
-    """Tarayıcı parametrelerine dayalı veya rastgele benzersiz oturum kimliği üretir."""
+    """Generates a persistent session ID using query parameters or a random fallback."""
     try:
         if "session" in st.query_params:
             return st.query_params["session"]
@@ -45,23 +44,16 @@ def get_persistent_session_id() -> str:
         return str(uuid.uuid4())
 
 
-# 5. Servislerin Başlatılması (Dependency Injection & Caching)
 @st.cache_resource
 def init_services():
-    """
-    Uygulama servislerini tek bir noktada ayağa kaldırır ve cache'ler.
-    Böylece her sayfa etkileşiminde veritabanı veya API tekrar tekrar bağlanmaz.
-    """
-    # Veritabanı servisini TOML'daki db_path ile başlat
+    """Initializes and caches core application services."""
     db_service = DatabaseService(db_path=config.database.db_path)
     
-    # Gemini AI servisini TOML'daki model ve prompt yolları ile başlat
     ai_service = GeminiManager(
         model_name=config.ai.model_name, 
         prompts_path=config.ai.prompts_path
     )
     
-    # Export servisine db_service'i ve export konfigürasyonlarını enjekte et
     export_service = ExportManager(
         db_service=db_service,
         export_config=config.export
@@ -70,13 +62,11 @@ def init_services():
     return db_service, ai_service, export_service
 
 
-# Servisleri başlatıp değişkenlere alıyoruz
 db_service, ai_service, export_service = init_services()
 
 
-# 6. Session State İlklendirmesi
 def init_session_state():
-    """Streamlit oturum durum değişkenlerini varsayılan değerlerle başlatır."""
+    """Initializes Streamlit session state variables."""
     if "user_session_id" not in st.session_state:
         st.session_state.user_session_id = get_persistent_session_id()
     if "current_conversation_id" not in st.session_state:
@@ -93,9 +83,7 @@ def init_session_state():
 
 init_session_state()
 
-
-# 7. Uygulama Arayüzünü Tetikle
-# Tüm UI çizim ve iş mantığı yönlendirmesini UI katmanındaki view.py üstlenir.
+# Render UI layer
 render_app(
     db_service=db_service, 
     ai_service=ai_service, 
