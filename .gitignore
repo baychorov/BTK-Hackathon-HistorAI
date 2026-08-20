@@ -2,6 +2,9 @@ __pycache__/
 *.pyc
 .idea/
 venv/
+/.vscode
+/.devcontainer
 credentials/api_key.env
 app/database/historai.db 
 app/database/historai_local.db
+
